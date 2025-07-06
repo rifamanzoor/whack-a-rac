@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Whack-a-Racc 🦝</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Georgia, serif;
+      color: white;
+      text-align: center;
+      background: url('https://www.restobiz.ca/wp-content/uploads/2018/03/timhortonsnewexperience-777x400.jpg') no-repeat center center fixed;
+      background-size: cover;
+      overflow-x: hidden;
+      overflow-y: auto;
+      position: relative;
+      height: 100vh;
+    }
+
+    .overlay {
+      background: rgba(0,0,0,0.65);
+      position: absolute;
+      inset: 0;
+      padding-top: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      z-index: 10;
+    }
+
+    #introText {
+      font-size: 4.5em;
+      max-width: 90%;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 8px black;
+      position: relative;
+      z-index: 12;
+    }
+
+    #nextBtn {
+      font-size: 1.2em;
+      padding: 12px 25px;
+      background: black;
+      border: none;
+      border-radius: 25px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      user-select: none;
+      transition: background 0.3s ease;
+      position: relative;
+      z-index: 12;
+    }
+
+    #nextBtn:hover {
+      background: darkred;
+    }
+
+    #raccoonRun {
+      position: absolute;
+      bottom: 80px;
+      left: -150px;
+      width: 120px;
+      height: 120px;
+      pointer-events: none;
+      z-index: 11;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    #raccoonRun img {
+      width: 180px;
+      height: auto;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    /* Center the game container and fit it on screen */
+    #gameContainer.game-screen {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      padding: 0 10px;
+    }
+
+    h1 {
+      font-size: 3em;
+      margin-bottom: 5px;
+      color: white;
+      text-shadow: 2px 2px 8px black;
+      z-index: 5;
+    }
+
+    .game-description {
+      font-size: 1.4em;
+      margin-bottom: 10px;
+      color: white;
+      text-shadow: 1px 1px 4px black;
+      z-index: 5;
+    }
+
+    .score-board {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+      text-shadow: 1px 1px 4px black;
+      z-index: 5;
+    }
+
+    #timer {
+      font-weight: bold;
+      margin-left: 10px;
+      text-shadow: 1px 1px 4px black;
+    }
+
+    .game {
+      display: grid;
+      grid-template-columns: repeat(3, 120px);
+      grid-template-rows: repeat(3, 120px);
+      gap: 10px;
+      justify-content: center;
+      padding: 10px;
+      position: relative;
+      z-index: 5;
+      transform: scale(0.9);
+    }
+
+    .hole {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle at center, #ffd9ab 0%, #b28b5c 30%, transparent 31%), url('https://i.pinimg.com/736x/a9/cb/58/a9cb588a913d5d4c1ab517ab28fdff51.jpg') no-repeat center center;
+      background-size: cover;
+      box-shadow: inset 0 0 15px 15px rgb(163, 120, 66);
+      cursor: default;
+      user-select: none;
+      position: relative;
+      z-index: 5;
+    }
+
+    .raccoon {
+      width: 80px;
+      position: absolute;
+      bottom: 10px;
+      left: 20px;
+      transition: opacity 0.3s ease;
+      cursor: pointer;
+      user-select: none;
+      filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.4));
+      opacity: 0;
+      pointer-events: none;
+      z-index: 6;
+    }
+
+    .up {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #startBtn {
+      padding: 12px 25px;
+      font-size: 1.2em;
+      margin-top: 10px;
+      background: crimson;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      user-select: none;
+      transition: background 0.3s ease;
+      z-index: 10;
+    }
+
+    #startBtn:hover {
+      background: darkred;
+    }
+
+    #endOverlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 999;
+    }
+
+    #endOverlay p {
+      font-size: 2em;
+      color: white;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 6px black;
+    }
+
+    #tryAgainBtn {
+      padding: 12px 25px;
+      font-size: 1.2em;
+      background: green;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      transition: background 0.3s ease;
+    }
+
+    #tryAgainBtn:hover {
+      background: darkgreen;
+    }
+
+    /* Updated home button styling */
+    #homeBtn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 1000;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+      user-select: none;
+      transition: background 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      text-transform: none;
+    }
+    #homeBtn:hover {
+      background: darkred;
+    }
+  </style>
+</head>
+<body>
+  <button id="homeBtn" title="Go to Home">Home</button>
+
+  <!-- Intro screen -->
+  <div class="overlay" id="introScreen">
+    <div id="introText">On a coffee run...</div>
+    <button id="nextBtn">Next</button>
+    <div id="raccoonRun"><img src="https://pngimg.com/d/raccoon_PNG16972.png" alt="Raccoon running" /></div>
+  </div>
+
+  <!-- Game container -->
+  <div id="gameContainer" class="game-screen" style="display:none;">
+    <h1>Whack-a-Racc 🦝</h1>
+    <p class="game-description">Catch all 25 raccoons.</p>
+    <div class="score-board">Score: <span id="score">0</span> | Time: <span id="timer">45</span>s</div>
+    
+    <div class="game">
+      <div class="hole"><img class="raccoon" src="https://pngimg.com/d/raccoon_PNG16968.png" /></div>
+      <div class="hole"><img class="raccoon" src="https://pngimg.com/d/raccoon_PNG16968.png" /></div>
+      <div class="hole"><img class="raccoon" src="https://pngimg.com/d/raccoon_PNG16968.png" /></div>
+      <div class="hole"><img class="raccoon" src="https://pngimg.com/d/raccoon_PNG16968.png" /></div>
+      <div class="hole"><img class="raccoon" src="https://pngimg.com/d/raccoon_PNG16968.png" /></div>
+      <div class="hole"><img class="raccoon" src="https://pngimg.com/d/raccoon_PNG16968.png" /></div>
+      <div class="hole"><img class="raccoon" src="https://pngimg.com/d/raccoon_PNG16968.png" /></div>
+      <div class="hole"><img class="raccoon" src="https://pngimg.com/d/raccoon_PNG16968.png" /></div>
+      <div class="hole"><img class="raccoon" src="https://pngimg.com/d/raccoon_PNG16968.png" /></div>
+    </div>
+
+    <button id="startBtn">Start Game</button>
+
+    <!-- Game over overlay -->
+    <div id="endOverlay">
+      <p id="endMessage">Game Over!</p>
+      <button id="tryAgainBtn">Try Again</button>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const introScreen = document.getElementById('introScreen');
+      const nextBtn = document.getElementById('nextBtn');
+      const introText = document.getElementById('introText');
+      const raccoonRun = document.getElementById('raccoonRun');
+      const gameContainer = document.getElementById('gameContainer');
+      const holes = document.querySelectorAll('.hole');
+      const raccoons = document.querySelectorAll('.raccoon');
+      const scoreDisplay = document.getElementById('score');
+      const timerDisplay = document.getElementById('timer');
+      const startBtn = document.getElementById('startBtn');
+      const endOverlay = document.getElementById('endOverlay');
+      const endMessage = document.getElementById('endMessage');
+      const tryAgainBtn = document.getElementById('tryAgainBtn');
+      const homeBtn = document.getElementById('homeBtn');
+
+      let score = 0;
+      let lastHole;
+      let gameRunning = false;
+      let countdownTimer;
+      const winScore = 25;
+
+      const introMessages = [
+        "On a coffee run...",
+        "Oh no was that a raccoon? Let's catch them!"
+      ];
+      let introIndex = 0;
+
+      nextBtn.addEventListener('click', () => {
+        introIndex++;
+        if (introIndex < introMessages.length) {
+          introText.textContent = introMessages[introIndex];
+          runRaccoonAnimation();
+        } else {
+          document.body.style.background = "url('https://preview.redd.it/can-you-believe-this-v0-e9mf2g94z4sd1.jpeg?width=1080&crop=smart&auto=webp&s=a1336c36f95e7a2f7d73fd8c6826f108cb541120') no-repeat center center fixed";
+          document.body.style.backgroundSize = 'cover';
+          introScreen.style.display = 'none';
+          gameContainer.style.display = 'flex';
+        }
+      });
+
+      function runRaccoonAnimation() {
+        raccoonRun.style.opacity = '1';
+        raccoonRun.style.left = '-150px';
+        raccoonRun.style.transition = 'none';
+        raccoonRun.offsetWidth; // trigger reflow
+        raccoonRun.style.transition = 'left 3s linear, opacity 0.5s ease 2.5s';
+        raccoonRun.style.left = '110vw';
+        setTimeout(() => { raccoonRun.style.opacity = '0'; }, 2500);
+      }
+
+      function randomTime(min, max) {
+        return Math.round(Math.random() * (max - min) + min);
+      }
+
+      function randomHole(holes) {
+        let idx;
+        do {
+          idx = Math.floor(Math.random() * holes.length);
+        } while (holes[idx] === lastHole);
+        lastHole = holes[idx];
+        return holes[idx];
+      }
+
+      function peep() {
+        if (!gameRunning) return;
+        const hole = randomHole(holes);
+        const raccoon = hole.querySelector('.raccoon');
+        const time = randomTime(600, 1000);
+        raccoon.classList.add('up');
+        setTimeout(() => {
+          raccoon.classList.remove('up');
+          if (gameRunning) peep();
+        }, time);
+      }
+
+      function startGame() {
+        gameRunning = true;
+        score = 0;
+        scoreDisplay.textContent = score;
+        timerDisplay.textContent = 45;
+        endOverlay.style.display = 'none';
+        raccoons.forEach(r => r.classList.remove('up'));
+        peep();
+        clearInterval(countdownTimer);
+        let timeLeft = 45;
+        countdownTimer = setInterval(() => {
+          timeLeft--;
+          timerDisplay.textContent = timeLeft;
+          if (timeLeft <= 0) {
+            clearInterval(countdownTimer);
+            gameRunning = false;
+            endGame();
+          }
+        }, 1000);
+      }
+
+      function endGame() {
+        raccoons.forEach(r => r.classList.remove('up'));
+        endOverlay.style.display = 'flex';
+
+        if (score >= winScore) {
+          endMessage.textContent = `🏆 YOU WIN! You caught ${score} raccoons!`;
+        } else if (score >= 20 && score < winScore) {
+          endMessage.textContent = `Almost there! You caught ${score} raccoons.`;
+        } else {
+          endMessage.textContent = `Game Over! You caught only ${score} raccoons.`;
+        }
+      }
+
+      tryAgainBtn.addEventListener('click', () => {
+        endOverlay.style.display = 'none';
+        startGame();
+      });
+
+      raccoons.forEach(raccoon => {
+        raccoon.addEventListener('click', function () {
+          if (!gameRunning || !this.classList.contains('up')) return;
+          score++;
+          this.classList.remove('up');
+          scoreDisplay.textContent = score;
+          if (score === winScore) {
+            clearInterval(countdownTimer);
+            gameRunning = false;
+            endGame();
+          }
+        });
+      });
+
+      startBtn.addEventListener('click', startGame);
+
+      homeBtn.addEventListener('click', () => {
+        location.reload();
+      });
+    });
+  </script>
+</body>
+</html>
